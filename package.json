@@ -1,0 +1,30 @@
+{
+  "name": "google-chat-notification",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Google Chat Notification for GitHub Actions",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "ncc build src/main.js",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agungsdas/google-chat-notification"
+  },
+  "keywords": [
+    "actions",
+    "node",
+    "setup"
+  ],
+  "author": "agungsdas",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0",
+    "axios": "^1.2.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.1"
+  }
+}
