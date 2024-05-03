@@ -1,5 +1,6 @@
 const github = require('@actions/github');
-const axios = require('axios')
+const axios = require('axios');
+const { capitalCase } = require('change-case');
 
 const statusColorPalette = {
   success: "#2cbe4e",
@@ -67,23 +68,32 @@ const notify = async (name, url, status) => {
             {
               keyValue: {
                 topLabel: "repository",
-                content: `${owner}/${repo}`,
+                content: `${capitalCase(repo)}`,
                 contentMultiline: true,
-                button: textButton("OPEN REPOSITORY", repoUrl)
+                button: textButton("OPEN REPOSITORY", repoUrl),
               }
             },
             {
               keyValue: {
                 topLabel: "changes",
                 content: message || '-',
-                button: textButton("OPEN COMMIT", eventUrl)
+                contentMultiline: true,
+                button: textButton("OPEN COMMIT", eventUrl),
               }
             },
             commiterName ? {
-              keyValue: { topLabel: "updated by", content: `${commiterName} - ${commiterEmail}` }
+              keyValue: {
+                topLabel: "updated by",
+                content: `${commiterName} - ${commiterEmail}`,
+                contentMultiline: true,
+              }
             } : undefined,
             {
-              keyValue: { topLabel: "environment", content: environment }
+              keyValue: {
+                topLabel: "environment",
+                content: environment,
+                contentMultiline: true,
+              }
             },
           ].filter(Boolean)
         },

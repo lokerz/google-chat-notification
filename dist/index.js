@@ -31468,7 +31468,8 @@ function wrappy (fn, cb) {
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const github = __nccwpck_require__(5438);
-const axios = __nccwpck_require__(8757)
+const axios = __nccwpck_require__(8757);
+const { capitalCase } = __nccwpck_require__(494);
 
 const statusColorPalette = {
   success: "#2cbe4e",
@@ -31536,23 +31537,32 @@ const notify = async (name, url, status) => {
             {
               keyValue: {
                 topLabel: "repository",
-                content: `${owner}/${repo}`,
+                content: `${capitalCase(repo)}`,
                 contentMultiline: true,
-                button: textButton("OPEN REPOSITORY", repoUrl)
+                button: textButton("OPEN REPOSITORY", repoUrl),
               }
             },
             {
               keyValue: {
                 topLabel: "changes",
                 content: message || '-',
-                button: textButton("OPEN COMMIT", eventUrl)
+                contentMultiline: true,
+                button: textButton("OPEN COMMIT", eventUrl),
               }
             },
             commiterName ? {
-              keyValue: { topLabel: "updated by", content: `${commiterName} - ${commiterEmail}` }
+              keyValue: {
+                topLabel: "updated by",
+                content: `${commiterName} - ${commiterEmail}`,
+                contentMultiline: true,
+              }
             } : undefined,
             {
-              keyValue: { topLabel: "environment", content: environment }
+              keyValue: {
+                topLabel: "environment",
+                content: environment,
+                contentMultiline: true,
+              }
             },
           ].filter(Boolean)
         },
@@ -37329,6 +37339,239 @@ module.exports = axios;
 
 /***/ }),
 
+/***/ 494:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+"use strict";
+__nccwpck_require__.r(__webpack_exports__);
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   "camelCase": () => (/* binding */ camelCase),
+/* harmony export */   "capitalCase": () => (/* binding */ capitalCase),
+/* harmony export */   "constantCase": () => (/* binding */ constantCase),
+/* harmony export */   "dotCase": () => (/* binding */ dotCase),
+/* harmony export */   "kebabCase": () => (/* binding */ kebabCase),
+/* harmony export */   "noCase": () => (/* binding */ noCase),
+/* harmony export */   "pascalCase": () => (/* binding */ pascalCase),
+/* harmony export */   "pascalSnakeCase": () => (/* binding */ pascalSnakeCase),
+/* harmony export */   "pathCase": () => (/* binding */ pathCase),
+/* harmony export */   "sentenceCase": () => (/* binding */ sentenceCase),
+/* harmony export */   "snakeCase": () => (/* binding */ snakeCase),
+/* harmony export */   "split": () => (/* binding */ split),
+/* harmony export */   "splitSeparateNumbers": () => (/* binding */ splitSeparateNumbers),
+/* harmony export */   "trainCase": () => (/* binding */ trainCase)
+/* harmony export */ });
+// Regexps involved with splitting words in various case formats.
+const SPLIT_LOWER_UPPER_RE = /([\p{Ll}\d])(\p{Lu})/gu;
+const SPLIT_UPPER_UPPER_RE = /(\p{Lu})([\p{Lu}][\p{Ll}])/gu;
+// Used to iterate over the initial split result and separate numbers.
+const SPLIT_SEPARATE_NUMBER_RE = /(\d)\p{Ll}|(\p{L})\d/u;
+// Regexp involved with stripping non-word characters from the result.
+const DEFAULT_STRIP_REGEXP = /[^\p{L}\d]+/giu;
+// The replacement value for splits.
+const SPLIT_REPLACE_VALUE = "$1\0$2";
+// The default characters to keep after transforming case.
+const DEFAULT_PREFIX_SUFFIX_CHARACTERS = "";
+/**
+ * Split any cased input strings into an array of words.
+ */
+function split(value) {
+    let result = value.trim();
+    result = result
+        .replace(SPLIT_LOWER_UPPER_RE, SPLIT_REPLACE_VALUE)
+        .replace(SPLIT_UPPER_UPPER_RE, SPLIT_REPLACE_VALUE);
+    result = result.replace(DEFAULT_STRIP_REGEXP, "\0");
+    let start = 0;
+    let end = result.length;
+    // Trim the delimiter from around the output string.
+    while (result.charAt(start) === "\0")
+        start++;
+    if (start === end)
+        return [];
+    while (result.charAt(end - 1) === "\0")
+        end--;
+    return result.slice(start, end).split(/\0/g);
+}
+/**
+ * Split the input string into an array of words, separating numbers.
+ */
+function splitSeparateNumbers(value) {
+    const words = split(value);
+    for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        const match = SPLIT_SEPARATE_NUMBER_RE.exec(word);
+        if (match) {
+            const offset = match.index + (match[1] ?? match[2]).length;
+            words.splice(i, 1, word.slice(0, offset), word.slice(offset));
+        }
+    }
+    return words;
+}
+/**
+ * Convert a string to space separated lower case (`foo bar`).
+ */
+function noCase(input, options) {
+    const [prefix, words, suffix] = splitPrefixSuffix(input, options);
+    return (prefix +
+        words.map(lowerFactory(options?.locale)).join(options?.delimiter ?? " ") +
+        suffix);
+}
+/**
+ * Convert a string to camel case (`fooBar`).
+ */
+function camelCase(input, options) {
+    const [prefix, words, suffix] = splitPrefixSuffix(input, options);
+    const lower = lowerFactory(options?.locale);
+    const upper = upperFactory(options?.locale);
+    const transform = options?.mergeAmbiguousCharacters
+        ? capitalCaseTransformFactory(lower, upper)
+        : pascalCaseTransformFactory(lower, upper);
+    return (prefix +
+        words
+            .map((word, index) => {
+            if (index === 0)
+                return lower(word);
+            return transform(word, index);
+        })
+            .join(options?.delimiter ?? "") +
+        suffix);
+}
+/**
+ * Convert a string to pascal case (`FooBar`).
+ */
+function pascalCase(input, options) {
+    const [prefix, words, suffix] = splitPrefixSuffix(input, options);
+    const lower = lowerFactory(options?.locale);
+    const upper = upperFactory(options?.locale);
+    const transform = options?.mergeAmbiguousCharacters
+        ? capitalCaseTransformFactory(lower, upper)
+        : pascalCaseTransformFactory(lower, upper);
+    return prefix + words.map(transform).join(options?.delimiter ?? "") + suffix;
+}
+/**
+ * Convert a string to pascal snake case (`Foo_Bar`).
+ */
+function pascalSnakeCase(input, options) {
+    return capitalCase(input, { delimiter: "_", ...options });
+}
+/**
+ * Convert a string to capital case (`Foo Bar`).
+ */
+function capitalCase(input, options) {
+    const [prefix, words, suffix] = splitPrefixSuffix(input, options);
+    const lower = lowerFactory(options?.locale);
+    const upper = upperFactory(options?.locale);
+    return (prefix +
+        words
+            .map(capitalCaseTransformFactory(lower, upper))
+            .join(options?.delimiter ?? " ") +
+        suffix);
+}
+/**
+ * Convert a string to constant case (`FOO_BAR`).
+ */
+function constantCase(input, options) {
+    const [prefix, words, suffix] = splitPrefixSuffix(input, options);
+    return (prefix +
+        words.map(upperFactory(options?.locale)).join(options?.delimiter ?? "_") +
+        suffix);
+}
+/**
+ * Convert a string to dot case (`foo.bar`).
+ */
+function dotCase(input, options) {
+    return noCase(input, { delimiter: ".", ...options });
+}
+/**
+ * Convert a string to kebab case (`foo-bar`).
+ */
+function kebabCase(input, options) {
+    return noCase(input, { delimiter: "-", ...options });
+}
+/**
+ * Convert a string to path case (`foo/bar`).
+ */
+function pathCase(input, options) {
+    return noCase(input, { delimiter: "/", ...options });
+}
+/**
+ * Convert a string to path case (`Foo bar`).
+ */
+function sentenceCase(input, options) {
+    const [prefix, words, suffix] = splitPrefixSuffix(input, options);
+    const lower = lowerFactory(options?.locale);
+    const upper = upperFactory(options?.locale);
+    const transform = capitalCaseTransformFactory(lower, upper);
+    return (prefix +
+        words
+            .map((word, index) => {
+            if (index === 0)
+                return transform(word);
+            return lower(word);
+        })
+            .join(options?.delimiter ?? " ") +
+        suffix);
+}
+/**
+ * Convert a string to snake case (`foo_bar`).
+ */
+function snakeCase(input, options) {
+    return noCase(input, { delimiter: "_", ...options });
+}
+/**
+ * Convert a string to header case (`Foo-Bar`).
+ */
+function trainCase(input, options) {
+    return capitalCase(input, { delimiter: "-", ...options });
+}
+function lowerFactory(locale) {
+    return locale === false
+        ? (input) => input.toLowerCase()
+        : (input) => input.toLocaleLowerCase(locale);
+}
+function upperFactory(locale) {
+    return locale === false
+        ? (input) => input.toUpperCase()
+        : (input) => input.toLocaleUpperCase(locale);
+}
+function capitalCaseTransformFactory(lower, upper) {
+    return (word) => `${upper(word[0])}${lower(word.slice(1))}`;
+}
+function pascalCaseTransformFactory(lower, upper) {
+    return (word, index) => {
+        const char0 = word[0];
+        const initial = index > 0 && char0 >= "0" && char0 <= "9" ? "_" + char0 : upper(char0);
+        return initial + lower(word.slice(1));
+    };
+}
+function splitPrefixSuffix(input, options = {}) {
+    const splitFn = options.split ?? (options.separateNumbers ? splitSeparateNumbers : split);
+    const prefixCharacters = options.prefixCharacters ?? DEFAULT_PREFIX_SUFFIX_CHARACTERS;
+    const suffixCharacters = options.suffixCharacters ?? DEFAULT_PREFIX_SUFFIX_CHARACTERS;
+    let prefixIndex = 0;
+    let suffixIndex = input.length;
+    while (prefixIndex < input.length) {
+        const char = input.charAt(prefixIndex);
+        if (!prefixCharacters.includes(char))
+            break;
+        prefixIndex++;
+    }
+    while (suffixIndex > prefixIndex) {
+        const index = suffixIndex - 1;
+        const char = input.charAt(index);
+        if (!suffixCharacters.includes(char))
+            break;
+        suffixIndex = index;
+    }
+    return [
+        input.slice(0, prefixIndex),
+        splitFn(input.slice(prefixIndex, suffixIndex)),
+        input.slice(suffixIndex),
+    ];
+}
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
 /***/ 3765:
 /***/ ((module) => {
 
@@ -37370,6 +37613,34 @@ module.exports = JSON.parse('{"application/1d-interleaved-parityfec":{"source":"
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__nccwpck_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
