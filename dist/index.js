@@ -31499,10 +31499,12 @@ const notify = async (name, url, status) => {
   const checksUrl = `${repoUrl}/actions/runs/${ github.context.runId }`;
 
   let commiterName = ''
+  let commiterEmail = ''
   let message = ''
   if (github.context.eventName === 'push') {
     const pushPayload = github.context.payload || {}
-    commiterName = pushPayload.commits?.[0]?.committer.name
+    commiterName = pushPayload.commits?.[0]?.committer?.name
+    commiterEmail = pushPayload.commits?.[0]?.committer?.email
     message = pushPayload.commits?.[0]?.message
   }
 
@@ -31537,12 +31539,12 @@ const notify = async (name, url, status) => {
             {
               keyValue: { topLabel: "ref", content: ref }
             },
-            commiterName ? {
-              keyValue: { topLabel: "by", content: commiterName }
-            } : undefined,
             message ? {
               keyValue: { topLabel: "changes", content: message }
-            } : undefined
+            } : undefined,
+            commiterName ? {
+              keyValue: { topLabel: "updated by", content: `${commiterName} - ${commiterEmail}` }
+            } : undefined,
           ].filter(Boolean)
         },
         {
