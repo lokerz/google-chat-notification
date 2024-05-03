@@ -32,11 +32,23 @@ const notify = async (name, url, status) => {
   let commiterName = ''
   let commiterEmail = ''
   let message = ''
+  let environment = 'undefined'
+
   if (github.context.eventName === 'push') {
     const pushPayload = github.context.payload || {}
     commiterName = pushPayload.commits?.[0]?.committer?.name
     commiterEmail = pushPayload.commits?.[0]?.committer?.email
     message = pushPayload.commits?.[0]?.message
+  }
+
+  if (ref.toLowerCase().includes('dev')) {
+    environment = 'Dev'
+  }
+  if (ref.toLowerCase().includes('staging') || ref.toLowerCase().includes('release') || ref.toLowerCase().includes('hotfix')) {
+    environment = 'Staging'
+  }
+  if (ref.toLowerCase().includes('production') || ref.toLowerCase().includes('master') || ref.toLowerCase().includes('main')) {
+    environment = 'Production'
   }
 
   const body = {
@@ -62,20 +74,17 @@ const notify = async (name, url, status) => {
             },
             {
               keyValue: {
-                topLabel: "event name",
-                content: eventName,
-                button: textButton("OPEN EVENT", eventUrl)
+                topLabel: "changes",
+                content: message || 'There is no message',
+                button: textButton("OPEN COMMIT", eventUrl)
               }
             },
-            {
-              keyValue: { topLabel: "ref", content: ref }
-            },
-            message ? {
-              keyValue: { topLabel: "changes", content: message }
-            } : undefined,
             commiterName ? {
               keyValue: { topLabel: "updated by", content: `${commiterName} - ${commiterEmail}` }
             } : undefined,
+            {
+              keyValue: { topLabel: "environment", content: environment }
+            },
           ].filter(Boolean)
         },
         {
