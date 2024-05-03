@@ -31544,7 +31544,7 @@ const notify = async (name, url, status) => {
             {
               keyValue: {
                 topLabel: "changes",
-                content: message || 'There is no message',
+                content: message || '-',
                 button: textButton("OPEN COMMIT", eventUrl)
               }
             },
