@@ -23,7 +23,7 @@ const textButton = (text, url) => ({
 
 const notify = async (name, url, status, testflight, firebase) => {
   const { owner, repo } = github.context.repo;
-  const { eventName, sha, ref, ref_type } = github.context;
+  const { eventName, sha, ref, head_commit } = github.context;
   const { number } = github.context.issue;
   const repoUrl = `https://github.com/${owner}/${repo}`;
   const eventPath = eventName === 'pull_request' ? `/pull/${number}` : `/commit/${sha}`;
@@ -38,22 +38,19 @@ const notify = async (name, url, status, testflight, firebase) => {
   console.info('GitHub context:', JSON.stringify(github.context, null, 2));
 
   if (github.context.eventName === 'push') {
-    const pushPayload = github.context.payload || {}
-    commiterName = pushPayload.commits?.[0]?.committer?.name
-    commiterEmail = pushPayload.commits?.[0]?.committer?.email
-    message = pushPayload.commits?.[0]?.message
+    commiterName = head_commit.committer?.name
+    commiterEmail = head_commit.committer?.email
+    message = head_commit.message
   }
 
-  if (ref_type === 'tag') {
-    const tagName = ref.split('/').pop().toLowerCase();
-    if (tagName.includes('dev')) {
-      environment = 'Dev';
-    } else if (tagName.includes('staging')) {
-      environment = 'Staging';
-    } else if (tagName.includes('prod')) {
-      environment = 'Production';
-    }
+  if (ref.includes('dev')) {
+    environment = 'Dev';
+  } else if (tagName.includes('staging')) {
+    environment = 'Staging';
+  } else if (tagName.includes('prod')) {
+    environment = 'Production';
   }
+  
 
   const body = {
     cards: [
@@ -62,7 +59,7 @@ const notify = async (name, url, status, testflight, firebase) => {
         {
           widgets: [{
             textParagraph: {
-              text: `<b>${name} - <font color="${statusColorPalette[status]}">${statusText[status]}</font></b>`
+              text: `<b>${name} <font color="${statusColorPalette[status]}">${statusText[status]}</font></b>`
             }
           }]
         },
@@ -104,8 +101,8 @@ const notify = async (name, url, status, testflight, firebase) => {
           widgets: [{
             buttons: [
               textButton("OPEN WORKFLOW", checksUrl),
-              textButton("OPEN TESTFLIGHT (IOS)", testflight),
-              textButton("OPEN FIREBASE (ANDROID)", firebase),
+              textButton("OPEN IOS", testflight),
+              textButton("OPEN ANDROID", firebase),
             ]
           }]
         }
