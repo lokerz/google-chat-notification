@@ -8,11 +8,12 @@ async function run() {
     const url = core.getInput('url', { required: true });
     const status = JobStatus.parse(core.getInput('status', { required: true }));
     const testflight = core.getInput('testflight', { required: true });
-    const firebase = core.getInput('firebase', { required: true });
+    const register = core.getInput('register', { required: true });
+    const registerFirebase = core.getInput('register-firebase', { required: false });
 
     core.debug(`input params: name=${name}, status=${status}, url=${url}`);
 
-    await GoogleChat.notify(name, url, status, testflight, firebase);
+    await GoogleChat.notify(name, url, status, testflight, registerFirebase, register);
     console.info('Sent message.')
   } catch (error) {
     if (error instanceof Error) {

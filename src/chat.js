@@ -21,7 +21,7 @@ const textButton = (text, url) => ({
   }
 });
 
-const notify = async (name, url, status, testflight, firebase) => {
+const notify = async (name, url, status, testflight, firebase, registerFirebase) => {
   const { owner, repo } = github.context.repo;
   const { eventName, sha, ref, head_commit } = github.context;
   const { number } = github.context.issue;
@@ -101,8 +101,27 @@ const notify = async (name, url, status, testflight, firebase) => {
           widgets: [{
             buttons: [
               textButton("OPEN WORKFLOW", checksUrl),
-              textButton("OPEN IOS", testflight),
-              textButton("OPEN ANDROID", firebase),
+            ]
+          }]
+        },
+        {
+          widgets: [{
+            textParagraph: {
+              text: `iOS`
+            },
+            buttons: [
+              textButton("DOWNLOAD", testflight),
+            ]
+          }]
+        },
+        {
+          widgets: [{
+            textParagraph: {
+              text: `Android`
+            },
+            buttons: [
+              textButton("DOWNLOAD", firebase),
+              textButton("REGISTER", registerFirebase ?? ''),
             ]
           }]
         }

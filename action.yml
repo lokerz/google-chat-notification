@@ -17,6 +17,10 @@ inputs:
   firebase:
     description: 'firebase link.'
     required: true
+  register-firebase:
+    description: 'firebase registration link.'
+    required: false
+
 runs:
   using: 'node16'
   main: 'dist/index.js'

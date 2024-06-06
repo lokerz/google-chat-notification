@@ -31490,7 +31490,7 @@ const textButton = (text, url) => ({
   }
 });
 
-const notify = async (name, url, status, testflight, firebase) => {
+const notify = async (name, url, status, testflight, firebase, registerFirebase) => {
   const { owner, repo } = github.context.repo;
   const { eventName, sha, ref, head_commit } = github.context;
   const { number } = github.context.issue;
@@ -31570,8 +31570,27 @@ const notify = async (name, url, status, testflight, firebase) => {
           widgets: [{
             buttons: [
               textButton("OPEN WORKFLOW", checksUrl),
-              textButton("OPEN IOS", testflight),
-              textButton("OPEN ANDROID", firebase),
+            ]
+          }]
+        },
+        {
+          widgets: [{
+            textParagraph: {
+              text: `iOS`
+            },
+            buttons: [
+              textButton("DOWNLOAD", testflight),
+            ]
+          }]
+        },
+        {
+          widgets: [{
+            textParagraph: {
+              text: `Android`
+            },
+            buttons: [
+              textButton("DOWNLOAD", firebase),
+              textButton("REGISTER", registerFirebase ?? ''),
             ]
           }]
         }
@@ -37663,11 +37682,12 @@ async function run() {
     const url = core.getInput('url', { required: true });
     const status = JobStatus.parse(core.getInput('status', { required: true }));
     const testflight = core.getInput('testflight', { required: true });
-    const firebase = core.getInput('firebase', { required: true });
+    const register = core.getInput('register', { required: true });
+    const registerFirebase = core.getInput('register-firebase', { required: false });
 
     core.debug(`input params: name=${name}, status=${status}, url=${url}`);
 
-    await GoogleChat.notify(name, url, status, testflight, firebase);
+    await GoogleChat.notify(name, url, status, testflight, registerFirebase, register);
     console.info('Sent message.')
   } catch (error) {
     if (error instanceof Error) {
