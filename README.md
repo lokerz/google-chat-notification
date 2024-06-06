@@ -12,7 +12,7 @@ Sends a Google Chat notification.
 ### Examples
 ```yaml
 - name: Google Chat Notification
-  uses: agungsdas/google-chat-notification@releases/v1
+  uses: lokerz/google-chat-notification@releases/v1
   with:
     name: Build
     url: ${{ secrets.GOOGLE_CHAT_WEBHOOK }}

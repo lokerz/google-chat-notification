@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/agungsdas/google-chat-notification"
+    "url": "git+https://github.com/lokerz/google-chat-notification"
   },
   "keywords": [
     "actions",
     "node",
     "setup"
   ],
-  "author": "agungsdas",
+  "author": "lokerz",
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.10.1",
