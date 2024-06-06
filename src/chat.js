@@ -23,7 +23,7 @@ const textButton = (text, url) => ({
 
 const notify = async (name, url, status, testflight, firebase, registerFirebase) => {
   const { owner, repo } = github.context.repo;
-  const { eventName, sha, ref, head_commit } = github.context;
+  const { eventName, sha, ref, payload } = github.context;
   const { number } = github.context.issue;
   const repoUrl = `https://github.com/${owner}/${repo}`;
   const eventPath = eventName === 'pull_request' ? `/pull/${number}` : `/commit/${sha}`;
@@ -38,9 +38,9 @@ const notify = async (name, url, status, testflight, firebase, registerFirebase)
   console.info('GitHub context:', JSON.stringify(github.context, null, 2));
 
   if (github.context.eventName === 'push') {
-    commiterName = head_commit.committer?.name
-    commiterEmail = head_commit.committer?.email
-    message = head_commit.message
+    commiterName = payload.head_commit?.committer?.name
+    commiterEmail = payload.head_commit?.committer?.email
+    message = payload.head_commit?.message
   }
 
   if (ref.includes('dev')) {
