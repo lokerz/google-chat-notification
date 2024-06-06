@@ -105,25 +105,33 @@ const notify = async (name, url, status, testflight, firebase, registerFirebase)
           }]
         },
         {
-          widgets: [{
-            textParagraph: {
-              text: `iOS`
+          widgets: [
+            {
+              textParagraph: {
+                text: `iOS`
+              },
             },
-            buttons: [
-              textButton("DOWNLOAD", testflight),
-            ]
-          }]
+            {
+              buttons: [
+                textButton("DOWNLOAD", testflight),
+              ]
+            }
+          ]
         },
         {
-          widgets: [{
-            textParagraph: {
-              text: `Android`
+          widgets: [
+            {
+              textParagraph: {
+                text: `Android`
+              }
             },
-            buttons: [
-              textButton("DOWNLOAD", firebase),
-              textButton("REGISTER", registerFirebase ?? ''),
-            ]
-          }]
+            {
+              buttons: [
+                textButton("DOWNLOAD", firebase),
+                textButton("REGISTER", registerFirebase ?? ''),
+              ]
+            }
+          ]
         }
       ]
     }
