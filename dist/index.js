@@ -31490,9 +31490,9 @@ const textButton = (text, url) => ({
   }
 });
 
-const notify = async (name, url, status) => {
+const notify = async (name, url, status, testflight, firebase) => {
   const { owner, repo } = github.context.repo;
-  const { eventName, sha, ref } = github.context;
+  const { eventName, sha, ref, ref_type } = github.context;
   const { number } = github.context.issue;
   const repoUrl = `https://github.com/${owner}/${repo}`;
   const eventPath = eventName === 'pull_request' ? `/pull/${number}` : `/commit/${sha}`;
@@ -31504,6 +31504,8 @@ const notify = async (name, url, status) => {
   let message = ''
   let environment = 'undefined'
 
+  console.info('GitHub context:', JSON.stringify(github.context, null, 2));
+
   if (github.context.eventName === 'push') {
     const pushPayload = github.context.payload || {}
     commiterName = pushPayload.commits?.[0]?.committer?.name
@@ -31511,14 +31513,15 @@ const notify = async (name, url, status) => {
     message = pushPayload.commits?.[0]?.message
   }
 
-  if (ref.toLowerCase().includes('dev')) {
-    environment = 'Dev'
-  }
-  if (ref.toLowerCase().includes('staging') || ref.toLowerCase().includes('release') || ref.toLowerCase().includes('hotfix')) {
-    environment = 'Staging'
-  }
-  if (ref.toLowerCase().includes('production') || ref.toLowerCase().includes('master') || ref.toLowerCase().includes('main')) {
-    environment = 'Production'
+  if (ref_type === 'tag') {
+    const tagName = ref.split('/').pop().toLowerCase();
+    if (tagName.includes('dev')) {
+      environment = 'Dev';
+    } else if (tagName.includes('staging')) {
+      environment = 'Staging';
+    } else if (tagName.includes('prod')) {
+      environment = 'Production';
+    }
   }
 
   const body = {
@@ -31528,7 +31531,7 @@ const notify = async (name, url, status) => {
         {
           widgets: [{
             textParagraph: {
-              text: `<b>${name} <font color="${statusColorPalette[status]}">${statusText[status]}</font></b>`
+              text: `<b>${name} - <font color="${statusColorPalette[status]}">${statusText[status]}</font></b>`
             }
           }]
         },
@@ -31568,7 +31571,11 @@ const notify = async (name, url, status) => {
         },
         {
           widgets: [{
-            buttons: [textButton("OPEN WORKFLOW", checksUrl)]
+            buttons: [
+              textButton("OPEN WORKFLOW", checksUrl),
+              textButton("OPEN TESTFLIGHT (IOS)", testflight),
+              textButton("OPEN FIREBASE (ANDROID)", firebase),
+            ]
           }]
         }
       ]
@@ -37658,10 +37665,12 @@ async function run() {
     const name = core.getInput('name', { required: true });
     const url = core.getInput('url', { required: true });
     const status = JobStatus.parse(core.getInput('status', { required: true }));
+    const testflight = core.getInput('testflight', { required: true });
+    const firebase = core.getInput('firebase', { required: true });
 
     core.debug(`input params: name=${name}, status=${status}, url=${url}`);
 
-    await GoogleChat.notify(name, url, status);
+    await GoogleChat.notify(name, url, status, testflight, firebase);
     console.info('Sent message.')
   } catch (error) {
     if (error instanceof Error) {
