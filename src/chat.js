@@ -21,7 +21,7 @@ const textButton = (text, url) => ({
   }
 });
 
-const notify = async (name, url, status) => {
+const notify = async (name, url, status, testflight, firebase) => {
   const { owner, repo } = github.context.repo;
   const { eventName, sha, ref } = github.context;
   const { number } = github.context.issue;
@@ -45,10 +45,10 @@ const notify = async (name, url, status) => {
   if (ref.toLowerCase().includes('dev')) {
     environment = 'Dev'
   }
-  if (ref.toLowerCase().includes('staging') || ref.toLowerCase().includes('release') || ref.toLowerCase().includes('hotfix')) {
+  if (ref.toLowerCase().includes('staging')) {
     environment = 'Staging'
   }
-  if (ref.toLowerCase().includes('production') || ref.toLowerCase().includes('master') || ref.toLowerCase().includes('main')) {
+  if (ref.toLowerCase().includes('prod') || ref.toLowerCase().includes('master') || ref.toLowerCase().includes('main')) {
     environment = 'Production'
   }
 
@@ -99,7 +99,10 @@ const notify = async (name, url, status) => {
         },
         {
           widgets: [{
-            buttons: [textButton("OPEN WORKFLOW", checksUrl)]
+            buttons: [
+              textButton("OPEN WORKFLOW", checksUrl),
+              textButton("OPEN TESTFLIGHT (IOS)", testflight),
+              textButton("OPEN FIREBASE (ANDROID)", firebase)]
           }]
         }
       ]
