@@ -35,7 +35,7 @@ const notify = async (name, url, status, testflight, firebase) => {
   let message = ''
   let environment = 'undefined'
 
-  console.log('GitHub context:', JSON.stringify(github.context, null, 2));
+  console.info('GitHub context:', JSON.stringify(github.context, null, 2));
 
   if (github.context.eventName === 'push') {
     const pushPayload = github.context.payload || {}
@@ -62,7 +62,7 @@ const notify = async (name, url, status, testflight, firebase) => {
         {
           widgets: [{
             textParagraph: {
-              text: `<b>${name} <font color="${statusColorPalette[status]}">${statusText[status]}</font></b>`
+              text: `<b>${name} - <font color="${statusColorPalette[status]}">${statusText[status]}</font></b>`
             }
           }]
         },
@@ -105,7 +105,8 @@ const notify = async (name, url, status, testflight, firebase) => {
             buttons: [
               textButton("OPEN WORKFLOW", checksUrl),
               textButton("OPEN TESTFLIGHT (IOS)", testflight),
-              textButton("OPEN FIREBASE (ANDROID)", firebase)]
+              textButton("OPEN FIREBASE (ANDROID)", firebase),
+            ]
           }]
         }
       ]
