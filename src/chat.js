@@ -23,7 +23,7 @@ const textButton = (text, url) => ({
 
 const notify = async (name, url, status, testflight, firebase) => {
   const { owner, repo } = github.context.repo;
-  const { eventName, sha, ref } = github.context;
+  const { eventName, sha, ref, ref_type } = github.context;
   const { number } = github.context.issue;
   const repoUrl = `https://github.com/${owner}/${repo}`;
   const eventPath = eventName === 'pull_request' ? `/pull/${number}` : `/commit/${sha}`;
@@ -35,6 +35,8 @@ const notify = async (name, url, status, testflight, firebase) => {
   let message = ''
   let environment = 'undefined'
 
+  console.log('GitHub context:', JSON.stringify(github.context, null, 2));
+
   if (github.context.eventName === 'push') {
     const pushPayload = github.context.payload || {}
     commiterName = pushPayload.commits?.[0]?.committer?.name
@@ -42,14 +44,15 @@ const notify = async (name, url, status, testflight, firebase) => {
     message = pushPayload.commits?.[0]?.message
   }
 
-  if (ref.toLowerCase().includes('dev')) {
-    environment = 'Dev'
-  }
-  if (ref.toLowerCase().includes('staging')) {
-    environment = 'Staging'
-  }
-  if (ref.toLowerCase().includes('prod') || ref.toLowerCase().includes('master') || ref.toLowerCase().includes('main')) {
-    environment = 'Production'
+  if (ref_type === 'tag') {
+    const tagName = ref.split('/').pop().toLowerCase();
+    if (tagName.includes('dev')) {
+      environment = 'Dev';
+    } else if (tagName.includes('staging')) {
+      environment = 'Staging';
+    } else if (tagName.includes('prod')) {
+      environment = 'Production';
+    }
   }
 
   const body = {
