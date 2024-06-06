@@ -108,7 +108,7 @@ const notify = async (name, url, status, testflight, firebase, registerFirebase)
           widgets: [
             {
               textParagraph: {
-                text: `iOS`
+                text: `<b>iOS</b>`
               },
             },
             {
@@ -122,7 +122,7 @@ const notify = async (name, url, status, testflight, firebase, registerFirebase)
           widgets: [
             {
               textParagraph: {
-                text: `Android`
+                text: `<b>Android</b>`
               }
             },
             {
