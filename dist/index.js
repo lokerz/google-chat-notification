@@ -31514,9 +31514,9 @@ const notify = async (name, url, status, testflight, firebase, registerFirebase)
 
   if (ref.includes('dev')) {
     environment = 'Dev';
-  } else if (tagName.includes('staging')) {
+  } else if (ref.includes('staging')) {
     environment = 'Staging';
-  } else if (tagName.includes('prod')) {
+  } else if (ref.includes('prod')) {
     environment = 'Production';
   }
   
