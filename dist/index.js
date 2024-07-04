@@ -31520,92 +31520,92 @@ const notify = async (name, url, status, testflight, firebase, registerFirebase)
     environment = 'Production';
   }
   
-
   const body = {
     cards: [
       {
-      sections: [
-        {
-          widgets: [{
-            textParagraph: {
-              text: `<b>${name} <font color="${statusColorPalette[status]}">${statusText[status]}</font></b>`
-            }
-          }]
-        },
-        {
-          widgets: [
-            {
-              keyValue: {
-                topLabel: "repository",
-                content: `${capitalCase(repo)}`,
-                contentMultiline: true,
-                button: textButton("OPEN REPOSITORY", repoUrl),
-              }
-            },
-            {
-              keyValue: {
-                topLabel: "changes",
-                content: message || '-',
-                contentMultiline: true,
-                button: textButton("OPEN COMMIT", eventUrl),
-              }
-            },
-            commiterName ? {
-              keyValue: {
-                topLabel: "updated by",
-                content: `${commiterName} - ${commiterEmail}`,
-                contentMultiline: true,
-              }
-            } : undefined,
-            {
-              keyValue: {
-                topLabel: "environment",
-                content: environment,
-                contentMultiline: true,
-              }
-            },
-          ].filter(Boolean)
-        },
-        {
-          widgets: [{
-            buttons: [
-              textButton("OPEN WORKFLOW", checksUrl),
-            ]
-          }]
-        },
-        {
-          widgets: [
-            {
+        sections: [
+          {
+            widgets: [{
               textParagraph: {
-                text: `<b>iOS</b>`
+                text: `<b>${name} <font color="${statusColorPalette[status]}">${statusText[status]}</font></b>`
+              }
+            }]
+          },
+          {
+            widgets: [
+              {
+                keyValue: {
+                  topLabel: "repository",
+                  content: `${capitalCase(repo)}`,
+                  contentMultiline: true,
+                  button: textButton("OPEN REPOSITORY", repoUrl),
+                }
               },
-            },
-            {
+              {
+                keyValue: {
+                  topLabel: "changes",
+                  content: message || '-',
+                  contentMultiline: true,
+                  button: textButton("OPEN COMMIT", eventUrl),
+                }
+              },
+              commiterName ? {
+                keyValue: {
+                  topLabel: "updated by",
+                  content: `${commiterName} - ${commiterEmail}`,
+                  contentMultiline: true,
+                }
+              } : undefined,
+              {
+                keyValue: {
+                  topLabel: "environment",
+                  content: environment,
+                  contentMultiline: true,
+                }
+              },
+            ].filter(Boolean)
+          },
+          {
+            widgets: [{
               buttons: [
-                textButton("DOWNLOAD", testflight),
+                textButton("OPEN WORKFLOW", checksUrl),
               ]
-            }
-          ]
-        },
-        {
-          widgets: [
-            {
-              textParagraph: {
-                text: `<b>Android</b>`
+            }]
+          },
+          ...(testflight ? [{
+            widgets: [
+              {
+                textParagraph: {
+                  text: `<b>iOS</b>`
+                },
+              },
+              {
+                buttons: [
+                  textButton("DOWNLOAD", testflight),
+                ]
               }
-            },
-            {
-              buttons: [
-                textButton("DOWNLOAD", firebase),
-                textButton("REGISTER", registerFirebase ?? ''),
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
+            ]
+          }] : []),
+          ...(firebase ? [{
+            widgets: [
+              {
+                textParagraph: {
+                  text: `<b>Android</b>`
+                }
+              },
+              {
+                buttons: [
+                  textButton("DOWNLOAD", firebase),
+                  textButton("REGISTER", registerFirebase),
+                ].filter(Boolean)
+              }
+            ]
+          }] : [])
+        ]
+      }
+    ]
   };
+    
 
   const response = await axios.default.post(url, body);
   if (response.status !== 200) {
@@ -37689,8 +37689,8 @@ async function run() {
     const name = core.getInput('name', { required: true });
     const url = core.getInput('url', { required: true });
     const status = JobStatus.parse(core.getInput('status', { required: true }));
-    const testflight = core.getInput('testflight', { required: true });
-    const firebase = core.getInput('firebase', { required: true });
+    const testflight = core.getInput('testflight', { required: false });
+    const firebase = core.getInput('firebase', { required: false });
     const registerFirebase = core.getInput('register-firebase', { required: false });
 
     core.debug(`input params: name=${name}, status=${status}, url=${url}`);

@@ -13,10 +13,10 @@ inputs:
     required: true
   testflight:
     description: 'testflight link.'
-    required: true
+    required: false
   firebase:
     description: 'firebase link.'
-    required: true
+    required: false
   register-firebase:
     description: 'firebase registration link.'
     required: false
